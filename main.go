@@ -31,7 +31,7 @@ func main() {
 
 	wl := &webUrl{
 		name:   "择天记",
-		uri:    "http://www.xs82.com/books/31/31565/?LMCL=V6pzEW",
+		uri:    "http://www.xs82.com/books/31/31565/?LMCL=n2s9R3",
 		method: "GET",
 		domain: "http://www.xs82.com/books/31/31565/",
 		//charpter: make([]string),
@@ -65,15 +65,35 @@ func (wl *webUrl) getCharpterList() {
 	}
 
 	by := string(body)
-	fmt.Println(by)
+	//fmt.Println(by)
 	x, _ := goquery.ParseString(by)
 
 	cp := x.Find("ul.chapterlist li a")
 	fmt.Println("------------中文------------------")
 
+	db, dberr := sql.Open("mysql", "root:1qaz@WSX@/noval")
+
+	if dberr != nil {
+		panic(dberr.Error())
+	}
+
+	defer db.Close()
+
+	stmtIns, stmterr := db.Prepare("insert into bookdetail (urlhtml,content) values(?,?)")
+
+	if stmterr != nil {
+		panic(stmterr.Error())
+	}
+	defer stmtIns.Close()
+
 	for i := 0; i < cp.Length(); i++ {
 		d := cp.Eq(i).Attr("href")
 		v := cp.Eq(i).Text()
+
+		_, err = stmtIns.Exec(d, "") // Insert tuples (i, i^2)
+		if err != nil {
+			panic(err.Error()) // proper error handling instead of panic in your app
+		}
 		fmt.Println("href=" + d + " ----- value=" + v)
 	}
 
