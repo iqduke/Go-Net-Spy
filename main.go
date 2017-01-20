@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
+	"time"
 )
 
 type webOperation interface {
@@ -27,17 +28,42 @@ func (wl *webUrl) filter() {
 
 }
 
+func getContent(url string, method string) {
+	client := &http.Client{}
+	request, err := http.NewRequest(method, url, nil)
+	if err != nil {
+		fmt.Println("Fatal error", err.Error())
+		os.Exit(0)
+	}
+
+	response, err := client.Do(request)
+
+	defer response.Body.Close()
+
+	body, err1 := ioutil.ReadAll(response.Body)
+
+	if err1 != nil {
+		fmt.Println("body err")
+	}
+
+	by := string(body)
+
+	fmt.Println(by)
+}
+
 func main() {
 
 	wl := &webUrl{
 		name:   "择天记",
-		uri:    "http://www.xs82.com/books/31/31565/?LMCL=n2s9R3",
+		uri:    "http://www.xs82.com/books/31/31565/?LMCL=GmCrrf",
 		method: "GET",
 		domain: "http://www.xs82.com/books/31/31565/",
 		//charpter: make([]string),
 	}
 
-	wl.getCharpterList()
+	//wl.getCharpterList()
+
+	getContent(wl.domain+"11885686.html", wl.method)
 }
 
 func (wl *webUrl) getCharpterList() {
@@ -79,7 +105,7 @@ func (wl *webUrl) getCharpterList() {
 
 	defer db.Close()
 
-	stmtIns, stmterr := db.Prepare("insert into bookdetail (urlhtml,content) values(?,?)")
+	stmtIns, stmterr := db.Prepare("insert into bookdetail (urlhtml,content,createtime) values(?,?,?)")
 
 	if stmterr != nil {
 		panic(stmterr.Error())
@@ -88,13 +114,14 @@ func (wl *webUrl) getCharpterList() {
 
 	for i := 0; i < cp.Length(); i++ {
 		d := cp.Eq(i).Attr("href")
-		v := cp.Eq(i).Text()
+		//v := cp.Eq(i).Text()
 
-		_, err = stmtIns.Exec(d, "") // Insert tuples (i, i^2)
+		_, err = stmtIns.Exec(d, "", time.Now()) // Insert tuples (i, i^2)
 		if err != nil {
 			panic(err.Error()) // proper error handling instead of panic in your app
 		}
-		fmt.Println("href=" + d + " ----- value=" + v)
+
 	}
 
+	fmt.Println("end")
 }
