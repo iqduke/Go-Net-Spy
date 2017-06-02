@@ -3,12 +3,14 @@ package main
 import (
 	"database/sql"
 	"fmt"
-	_ "github.com/go-sql-driver/mysql"
-	"github.com/opesun/goquery"
 	"io/ioutil"
 	"net/http"
 	"os"
 	"time"
+
+	_ "github.com/go-sql-driver/mysql"
+	"github.com/iqduke/Go-Net-Spy/sample"
+	"github.com/opesun/goquery"
 )
 
 type webOperation interface {
@@ -52,6 +54,8 @@ func getContent(url string, method string) {
 }
 
 func main() {
+
+	sample.Run()
 
 	wl := &webUrl{
 		name:   "择天记",
